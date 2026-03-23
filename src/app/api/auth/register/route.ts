@@ -2,16 +2,23 @@ import connectDB from "@/lib/db";
 import User from "@/models/user.model";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-import { use } from "react";
 
 export async function POST(req: NextRequest) {
     try {
         const { name, email, password } = await req.json()
         await connectDB()
+
         let user = await User.findOne({ email })
         if (user) {
             return NextResponse.json(
                 { message: "email already exist!" },
+                { status: 400 }
+            )
+        }
+
+        if (password.length < 6) {
+            return NextResponse.json(
+                { message: "password must be at least 6 characters" },
                 { status: 400 }
             )
         }
