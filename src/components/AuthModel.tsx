@@ -12,14 +12,15 @@ type propType = {
 }
 type stepType = 'login' | 'signup' | 'otp'
 const AuthModel = ({ open, onClose }: propType) => {
-  const [step, setStep] = useState<stepType>('login')
+  const [step, setStep] = useState<stepType>('otp')
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
+  const [otp, setOtp] = useState(["", "", "", "", "", ""])
 
-  const {data} = useSession()
+  const { data } = useSession()
   console.log(data)
 
   const handleSignUp = async () => {
@@ -28,7 +29,8 @@ const AuthModel = ({ open, onClose }: propType) => {
       const { data } = await axios.post('/api/auth/register', {
         name, email, password
       })
-      console.log(data)
+     
+      setStep('otp')
       setLoading(false)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -47,9 +49,28 @@ const AuthModel = ({ open, onClose }: propType) => {
     console.log(res)
   }
 
-  const handleGoogleLogin = async ()=>{
-    
+  const handleGoogleLogin = async () => {
+    await signIn("google")
+
   }
+
+  const handleChangeOtp = (index: number, value: string) => {
+    if (!/^[0-9]?$/.test(value)) return
+
+    const updated = [...otp]
+    updated[index] = value
+    setOtp(updated)
+
+    if (value && index < otp.length - 1) {
+      document.getElementById(`otp-${index + 1}`)?.focus()
+    }
+    if (!value && index > 0) {
+      document.getElementById(`otp-${index - 1}`)?.focus()
+    }
+
+  }
+
+
 
 
 
@@ -81,7 +102,8 @@ const AuthModel = ({ open, onClose }: propType) => {
                   <p className="mt-1 text-xs text-gray-500">Premium Vehicle Booking</p>
                 </div>
 
-                <button className="w-full h-11 rounded-xl border border-black/20 flex items-center justify-center gap-3 text-sm font-semibold hover:bg-black hover:text-white transition">
+                {/* Google button */}
+                <button className="w-full h-11 rounded-xl border border-black/20 flex items-center justify-center gap-3 text-sm font-semibold hover:bg-black hover:text-white transition" onClick={handleGoogleLogin}>
                   <Image src={'/google.png'} alt='google' width={20} height={20} />
                   Continue with Google
                 </button>
@@ -122,8 +144,8 @@ const AuthModel = ({ open, onClose }: propType) => {
                           />
                         </div>
 
+                        {/* Button */}
                         <button className=' w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition flex justify-center items-center'
-                          //  disabled={loading}
                           onClick={handleLogin}
                         >
                           {!loading ? " Login" : <CircleDashed size={18} color='white' className=' animate-spin' />}
@@ -175,11 +197,47 @@ const AuthModel = ({ open, onClose }: propType) => {
                           disabled={loading}
                           onClick={handleSignUp}
                         >
-                          {!loading ? " Sign Up" : <CircleDashed size={18} color='white' className=' animate-spin' />}
+                          {!loading ? " Send Otp" : <CircleDashed size={18} color='white' className=' animate-spin' />}
                         </button>
                       </div>
                       <p className='mt-6 text-center text-sm text-gray-500'> Already have an account? <div onClick={() => setStep('login')} className="text-black font-medium hover:underline">Login</div>
                       </p>
+
+                    </motion.div>
+                  )}
+
+                  {step == 'otp' && (
+                    <motion.div
+                      key='otp'
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                    >
+
+                      <h2 className='text-xl font-semibold'>Verify Email</h2>
+
+                      <div className="mt-6 flex justify-between gap-2">
+                        {otp.map((digit, i) => (
+                          <input
+                            key={i}
+                            id={`otp-${i}`}
+                            value={digit}
+                            maxLength={1}
+                            className='w-10 h-12 sm:w-12 text-center text-lg font-semibold rounded-xl bg-white border border-black/20 outline-none'
+                            onChange={(e) => handleChangeOtp(i, e.target.value)}
+
+                          />
+
+                        ))}
+
+                      </div>
+
+                      {/* Button */}
+                      <button className='mt-6 w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition'
+                      >
+                        Verify and Create Account
+
+                      </button>
 
                     </motion.div>
                   )}
