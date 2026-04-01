@@ -12,7 +12,7 @@ type propType = {
 }
 type stepType = 'login' | 'signup' | 'otp'
 const AuthModel = ({ open, onClose }: propType) => {
-  const [step, setStep] = useState<stepType>('otp')
+  const [step, setStep] = useState<stepType>('login')
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -29,7 +29,8 @@ const AuthModel = ({ open, onClose }: propType) => {
       const { data } = await axios.post('/api/auth/register', {
         name, email, password
       })
-     
+
+      setErr("")
       setStep('otp')
       setLoading(false)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +40,27 @@ const AuthModel = ({ open, onClose }: propType) => {
 
     }
   }
+
+  const handleVerifyEmail = async () => {
+    setLoading(true)
+    try {
+      const { data } = await axios.post('/api/auth/verify-email', {
+        email, otp: otp.join("")
+      })
+
+      console.log(data)
+      setOtp(["", "", "", "", "", ""])
+      setErr("")
+      setStep('login')
+      setLoading(false)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      setLoading(false)
+      setErr(error.response.data.message ?? "something went wrong")
+
+    }
+  }
+
 
   const handleLogin = async () => {
     setLoading(true)
@@ -192,7 +214,7 @@ const AuthModel = ({ open, onClose }: propType) => {
 
                         {err && <p className='text-red-500'>*{err}</p>}
 
-                        {/* Button */}
+                        {/* Button signup */}
                         <button className=' w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition flex justify-center items-center'
                           disabled={loading}
                           onClick={handleSignUp}
@@ -232,10 +254,14 @@ const AuthModel = ({ open, onClose }: propType) => {
 
                       </div>
 
+                      {err && <p className='text-red-500'>*{err}</p>}
+
                       {/* Button */}
-                      <button className='mt-6 w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition'
+                      <button className='mt-6 w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition flex justify-center items-center'
+                        disabled={loading}
+                        onClick={handleVerifyEmail}
                       >
-                        Verify and Create Account
+                        {!loading ? "Verify OTP and Create Account" : <CircleDashed size={18} color='white' className=' animate-spin' />}
 
                       </button>
 
