@@ -1,16 +1,20 @@
 'use client'
-import { motion } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { useState } from "react"
 import AuthModel from "./AuthModel"
+import { useSelector } from "react-redux"
+import { RootState } from "@/redux/store"
 
 const Nav_Items = ["Home", "Booking", "About Us", "Contect"]
 
 const Nav = () => {
   const pathName = usePathname()
   const [authOpen, setAuthOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const { userData } = useSelector((state: RootState) => state.user)
   return (
     <>
       <motion.div
@@ -39,11 +43,52 @@ const Nav = () => {
             })}
           </div>
 
-          <button className="px-4 py-1.5 rounded-full bg-white text-black text-sm"
-            onClick={() => setAuthOpen(true)}
-          >
-            Login
-          </button>
+          <div className=" flex items-center gap-3 relative">
+
+            <div className=" hidden md:block relative">
+              {!userData ? (
+                <button className="px-4 py-1.5 rounded-full bg-white text-black text-sm"
+                  onClick={() => setAuthOpen(true)}
+                >
+                  Login
+                </button>
+
+              ) : (
+                <>
+                  <button className="w-11 h-11 rounded-full bg-white text-black font-bold"
+                    onClick={() => setProfileOpen(p => !p)}
+                  >
+                    {userData.name.charAt(0).toUpperCase()}
+                  </button>
+
+                  <AnimatePresence>
+                    {profileOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className=" absolute top-14 right-0 w-[300px] bg-white text-black rounded-2xl shadow-xl border"
+                      >
+
+                        <div className="p-5">
+                          <p className="font-semibold text-lg">{userData.name}</p>
+                          <p className="text-xs uppercase text-gray-500 mb-4">{userData.role}</p>
+                        </div>
+
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                </>
+              )
+
+              }
+
+            </div>
+
+
+
+          </div>
         </div>
 
       </motion.div>
